@@ -10,6 +10,16 @@ test("test BDON 32", async ({ page }) => {
   const effectifAvantLicenciement = parseInt(
     await page.locator("#stat-total-count").innerText()
   );
+  await console.log("Effectif avant licenciement =", effectifAvantLicenciement);
+  //Récupérer l'économie avant le licenciement
+  const texteEconomieAvantLicenciement = await page
+    .locator("#current-savings-value")
+    .innerText();
+  const economieAvantLicenciement = await parseInt(
+    texteEconomieAvantLicenciement.replace(/[^\d]/g, ""),
+    10
+  );
+  await console.log("Economie avant licenciement =", economieAvantLicenciement);
   //Sélectionner l'employé #1001
   await page.getByTestId("checkbox-1001").check();
   //Cliquer sur l'élément "virer" du bandeau situé en bas de la page
@@ -28,10 +38,25 @@ test("test BDON 32", async ({ page }) => {
   await expect(page.locator("#table-employees")).not.toContainText(
     "Dennis Ritchie"
   );
-  //On vérifie que l'employé a bien été licencié: 1 - L'effectif de l'entreprise doit avoir diminué de 1
+  //On vérifie que l'employé a bien été licencié: 2 - L'effectif de l'entreprise doit avoir diminué de 1
   const effectifApresLicenciement = parseInt(
     await page.locator("#stat-total-count").innerText()
   );
-  //La valeur effectif est plus petite d’une unité par rapport à cette valeur avant le licenciement
+  await console.log("Effectif après licenciement =", effectifApresLicenciement);
+  //on vérifie que la valeur de l'effectif est plus petite d’une unité par rapport à cette valeur avant le licenciement
   await expect(effectifApresLicenciement).toBe(effectifAvantLicenciement - 1);
+  //récupérer l'économie après le licenciement
+  const texteEconomieApresLicenciement = await page
+    .locator("#current-savings-value")
+    .innerText();
+  const economieApresLicenciement = await parseInt(
+    texteEconomieApresLicenciement.replace(/[^\d]/g, ""),
+    10
+  );
+  await console.log("Economie après licenciement =", economieApresLicenciement);
+
+  //On vérifie que l'employé a bien été licencié: 3 - le licenciement a engendré une économie de 45000 euros
+  await expect(economieApresLicenciement).toBe(
+    economieAvantLicenciement + 45000
+  );
 });
