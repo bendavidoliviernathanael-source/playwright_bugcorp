@@ -222,6 +222,7 @@ test.describe("Changer le rôle d'un employé: promouvoir", () => {
 
     const initialText = await bugsLocator.textContent();
     let bugCount = Number(initialText); // ex: +128 => 128
+    console.log("initialText", initialText)
     console.log("nb de bugs: ", bugCount);
     // vérifier que le nombre de bug attendu correspond à ce que l'on récupère
     expect(Number(initialText)).toBe(bugCount);
@@ -239,5 +240,24 @@ test.describe("Changer le rôle d'un employé: promouvoir", () => {
     console.log("OBJECTIF D’ECONOMIES", savings); // 0
 
     await page.getByText("0 €", { exact: true }).click();
+
+
+
+    // Etape 4
+    // Cliquer sur l’icône apparaissant sous la forme d’un bouton contenant une flèche verte en escalier vers le bas.
+       await page.getByTestId('demote-btn-1010').click();
+    
+   // Le nom du rôle situé sous l’identité de l’employé change pour devenir:  CEO
+     await expect(page.locator("#cell-role-1010")).toContainText("CEO");
+
+//le nombre de bugs a augmenté de 10 (note: donc 128+10=138)
+bugCount += 10;
+ await expect(bugsLocator).toHaveValue(bugCount);
+
+ console.log("nb de bugs: ", bugCount);
+
+
+//le  montant inscrit sous objectif d'économie selon le montant prévu est modifié
+    
   });
 });
