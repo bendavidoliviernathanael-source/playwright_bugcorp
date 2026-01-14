@@ -138,4 +138,163 @@ test.describe("Tests de la page annuaire", () => {
     ).toContainText("Aucun employé trouvé. Essayez d'embaucher quelqu'un ?");
     await expect(page.getByTestId("filtered-count")).toContainText("0");
   });
+
+  //test BDON-35
+  test("test BDON-35", async ({ page }) => {
+    //liste des éléments du filtre département
+    const departements = [
+      "all",
+      "Ingénierie",
+      "Ventes",
+      "Marketing",
+      "RH",
+      "Juridique",
+      "Crise Existentielle",
+      "Mèmes",
+    ];
+    //liste des éléments du filtre statut
+    const statuts = ["all", "Actif", "Absent", "Sur la sellette"];
+    //compteur pour parcourir la collection departements
+    let cpt1 = 0;
+
+    while (cpt1 < departements.length) {
+      //Visiter le site https://bugcorp.vercel.app/
+      await page.goto("https://bugcorp.vercel.app/");
+      //Un affichage du site https://bugcorp.vercel.app/ est obtenu sur le navigateur.
+      await expect(page).toHaveURL("https://bugcorp.vercel.app/");
+
+      //Cliquer sur le bouton "l’annuaire" dans le bandeau sur le côté gauche de la page
+      await page.getByTestId("nav-directory").click();
+      //Un affichage d’une page avec le titre "L'Annuaire Enterprise" est obtenu
+      await expect(page.locator("#page-title")).toContainText(
+        "L'Annuaire Enterprise"
+      );
+
+      //Faire en sorte d’avoir le filtre département avec l'élément ${département}
+      await page.getByTestId("dept-filter").selectOption(departements[cpt1]);
+      //L'élément ${département} est affiché sur le filtre département
+      await expect(page.getByTestId("dept-filter")).toHaveValue(
+        departements[cpt1]
+      );
+
+      //compteur pour parcourir la collection statuts
+      let cpt2 = 0;
+      while (cpt2 < statuts.length) {
+        //Faire en sorte d’avoir le filtre statut avec l'élément ${statut}
+        await page.getByTestId("status-filter").selectOption(statuts[cpt2]);
+        //L'élément ${statut}  est affiché sur le filtre statut
+        await expect(page.getByTestId("status-filter")).toHaveValue(
+          statuts[cpt2]
+        );
+
+        //affichage de la configuration de filtres dans la console
+        await console.log(
+          "département : " +
+            departements[cpt1] +
+            "\n" +
+            "statut : " +
+            statuts[cpt2]
+        );
+
+        //sélection du tableau
+        const tableBody = page.locator("#table-body");
+        //attendre que le tableau soit visible
+        await tableBody.waitFor({ state: "visible" });
+        //obtention des lignes du tableau
+        const lignes = await tableBody.locator("tr").all();
+        //collection pour stocker les départements dans les lignes du tableau
+        const departementsDansLesLignesDuTableau = [];
+        //collection pour stocker les statuts dans les lignes du tableau
+        const statutsDansLesLignesDuTableau = [];
+        for (const ligne of lignes) {
+          //Nombre de cellules 'td' à l'intérieur de cette ligne
+          const nombreDeCellules = await ligne.locator("td").count();
+          if (nombreDeCellules > 6) {
+            //récupération de la valeur de la 4ieme cellule de la ligne (le département)
+            const valeurCelluleDepartement = await ligne
+              .locator("td")
+              .nth(3)
+              .textContent();
+            //ajout de la valeur de la cellule département dans la collection pour stocker les départements dans les lignes du tableau
+            await departementsDansLesLignesDuTableau.push(
+              valeurCelluleDepartement?.trim()
+            );
+            //récupération de la valeur de la 7eme cellule de la ligne (le département)
+            const valeurCelluleStatut = await ligne
+              .locator("td")
+              .nth(6)
+              .textContent();
+            //ajout de la valeur de la cellule statut dans la collection pour stocker les statuts dans les lignes du tableau
+            statutsDansLesLignesDuTableau.push(valeurCelluleStatut?.trim());
+          } else {
+            console.log(
+              "Attention, la ligne a " + nombreDeCellules + " cellule(s)."
+            );
+          }
+        }
+
+        console.log(
+          "departementsDansLesLignesDuTableau : " +
+            departementsDansLesLignesDuTableau
+        );
+        console.log(
+          "statutsDansLesLignesDuTableau : " + statutsDansLesLignesDuTableau
+        );
+
+        /*Si le filtre du département est "Département: Tous" observer que deux employés sont associés à des départements différents
+Sinon observer que le tableau contient que des employés du département ${Département}  */
+        if (departements[cpt1] === "all") {
+          let res = false;
+          let val = departementsDansLesLignesDuTableau[0];
+          for (const dep of departementsDansLesLignesDuTableau) {
+            if (dep != val) {
+              res = true;
+            }
+          }
+          await expect(res).toBe(true);
+        } else {
+          if (departementsDansLesLignesDuTableau.length > 0) {
+            let res = true;
+            let val = departementsDansLesLignesDuTableau[0];
+            for (const dep of departementsDansLesLignesDuTableau) {
+              if (dep != val) {
+                res = false;
+              }
+            }
+            await expect(res).toBe(true);
+          }
+        }
+
+        /*Si le filtre du département est "Statut: Tous" observer que deux employés sont associés à des statuts différents
+Sinon observer que le tableau contient que des employés avec le statut ${statut}*/
+        if (statuts[cpt2] === "all") {
+          let res = false;
+          let val = statutsDansLesLignesDuTableau[0];
+          for (const stat of statutsDansLesLignesDuTableau) {
+            if (stat != val) {
+              res = true;
+            }
+          }
+          await expect(res).toBe(true);
+        } else {
+          if (statutsDansLesLignesDuTableau.length > 0) {
+            let res = true;
+            let val = statutsDansLesLignesDuTableau[0];
+            for (const stat of statutsDansLesLignesDuTableau) {
+              if (stat != val) {
+                res = false;
+              }
+            }
+            await expect(res).toBe(true);
+          }
+        }
+
+        //augmentation de une unité de la valeur de la variable cpt2
+        cpt2 = cpt2 + 1;
+      }
+
+      //augmentation de une unité de la valeur de la variable cpt1
+      cpt1 = cpt1 + 1;
+    }
+  });
 });
