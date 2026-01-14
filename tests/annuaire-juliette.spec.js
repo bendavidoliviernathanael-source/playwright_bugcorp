@@ -184,3 +184,73 @@ test("test BDON-36", async ({ page }) => {
     economieAvantLicenciement + 3 * 45000
   );
 });
+
+//Test BDON-38 Virer tous les employés de BugCorp à partir de la bande du pop-up
+test("test BDON-38", async ({ page }) => {
+  await page.goto("https://bugcorp.vercel.app/");
+  //Cliquer sur l'onglet annuaire
+  await page.getByTestId("nav-directory").click();
+  //Récupérer l'effectif avant licenciement
+  const effectifAvantLicenciement = parseInt(
+    await page.locator("#stat-total-count").innerText()
+  );
+  await console.log("Effectif avant licenciement =", effectifAvantLicenciement);
+  //Récupérer l'économie actuelle avant le licenciement
+  const texteEconomieAvantLicenciement = await page
+    .locator("#current-savings-value")
+    .innerText();
+  const economieAvantLicenciement = await parseInt(
+    texteEconomieAvantLicenciement.replace(/[^\d]/g, ""),
+    10
+  );
+  await console.log("Economie avant licenciement =", economieAvantLicenciement);
+  //Sélectionner "100" pour le nombre d'items par page
+  await page.getByTestId("items-per-page").selectOption("100");
+  //Sélectionner tous les ID des employés de la page affichée
+  await page.getByTestId("select-all-checkbox").check();
+  //Cliquer sur "Virer" sur le bandeau du bas de la page
+  await page.getByText("Virer", { exact: true }).click();
+  //Cliquer sur "Continuer" sur le pop-up "Etes-vous sûr ?"
+  await page.getByTestId("fire-step1-confirm").click();
+  //Cliquer sur "Je n'ai pass de coeur, continuer" sur le pop-up "Il a une famille !"
+  await page.getByTestId("fire-step2-confirm").click();
+  //Taper DELETE dans le champ "DELETE" de la pop-up
+  await page.getByTestId("fire-confirm-input").fill("DELETE");
+  //Cliquer sur valider dans la pop-up DELETE
+  await page.getByTestId("fire-step3-confirm").click();
+  //Sélectionner tous les ID des employés de la page affichée
+  await page.getByTestId("select-all-checkbox").check();
+  //Cliquer sur "Virer" sur le bandeau du bas de la page
+  await page.getByText("Virer", { exact: true }).click();
+  //Cliquer sur "Continuer" sur le pop-up "Etes-vous sûr ?"
+  await page.getByTestId("fire-step1-confirm").click();
+  //Cliquer sur "Je n'ai pass de coeur, continuer" sur le pop-up "Il a une famille !"
+  await page.getByTestId("fire-step2-confirm").click();
+  //Taper DELETE dans le champ "DELETE" de la pop-up
+  await page.getByTestId("fire-confirm-input").fill("DELETE");
+  //Cliquer sur valider dans la pop-up DELETE
+  await page.getByTestId("fire-step3-confirm").click();
+
+  //On vérifie que les employés ont bien été licenciés:
+  // 1 - La page affiche un message "Succès Déverrouillé : Solopreneur"
+  await expect(page.locator("#empty-state-title")).toContainText(
+    "Succès Déverrouillé : Solopreneur"
+  );
+  //La page affiche l'économie totale réalisée
+  await expect(page.locator("#final-savings-display")).toContainText(
+    "Economies réalisées : 6 795 000 €"
+  );
+  //On vérifie que les employés ont bien été licenciés:
+  // 2 - L'effectif de l'entreprise doit avoir diminué de 151 après le licenciement
+  const effectifApresLicenciement = parseInt(
+    await page.locator("#stat-total-count").innerText()
+  );
+  await expect(effectifApresLicenciement).toBe(effectifAvantLicenciement - 151);
+  await console.log("Effectif après licenciement =", effectifApresLicenciement);
+
+  //Récupérer l'économie après le licenciement
+  await console.log(
+    "economieApresLicenciement =",
+    economieAvantLicenciement + effectifAvantLicenciement * 45000
+  );
+});
