@@ -11,6 +11,8 @@ test.describe("Changer le rôle d'un employé: promouvoir", () => {
     // la page affiche "Bienvenue chez BugCorp"
     await page.getByRole("heading", { name: "Bienvenue chez BugCorp" }).click();
 
+    // Coffee Maker, Prompt Engineer, Scapegoat, Intern, Junior Dev, Senior Dev, Manager, Director, VP, CEO, Galactic Emperor  
+
     // Etape 2
     //Cliquer sur "L’Annuaire" sur le bandeau de gauche.
     await page.getByTestId("nav-directory").click();
