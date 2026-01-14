@@ -45,7 +45,7 @@ test("test BDON 32", async ({ page }) => {
   await console.log("Effectif après licenciement =", effectifApresLicenciement);
   //on vérifie que la valeur de l'effectif est plus petite d’une unité par rapport à cette valeur avant le licenciement
   await expect(effectifApresLicenciement).toBe(effectifAvantLicenciement - 1);
-  //récupérer l'économie après le licenciement
+  //Récupérer l'économie après le licenciement
   const texteEconomieApresLicenciement = await page
     .locator("#current-savings-value")
     .innerText();
@@ -102,9 +102,9 @@ test("test BDON-34", async ({ page }) => {
     await page.locator("#stat-total-count").innerText()
   );
   await console.log("Effectif après licenciement =", effectifApresLicenciement);
-  //on vérifie que la valeur de l'effectif est plus petite d’une unité par rapport à cette valeur avant le licenciement
+  //On vérifie que la valeur de l'effectif est plus petite d’une unité par rapport à cette valeur avant le licenciement
   await expect(effectifApresLicenciement).toBe(effectifAvantLicenciement - 1);
-  //récupérer l'économie après le licenciement
+  //Récupérer l'économie après le licenciement
   const texteEconomieApresLicenciement = await page
     .locator("#current-savings-value")
     .innerText();
@@ -117,5 +117,70 @@ test("test BDON-34", async ({ page }) => {
   //On vérifie que l'employé a bien été licencié: 3 - le licenciement a engendré une économie de 45000 euros
   await expect(economieApresLicenciement).toBe(
     economieAvantLicenciement + 45000
+  );
+});
+
+//Test BDON-36 Virer 3 employés à partir de la bande du pop-up
+test("test BDON-36", async ({ page }) => {
+  await page.goto("https://bugcorp.vercel.app/");
+  //Cliquer sur l'onglet "Annuaire"
+  await page.getByTestId("nav-directory").click();
+  //Récupérer l'effectif avant licenciement
+  const effectifAvantLicenciement = parseInt(
+    await page.locator("#stat-total-count").innerText()
+  );
+  await console.log("Effectif avant licenciement =", effectifAvantLicenciement);
+  //Récupérer l'économie actuelle avant le licenciement
+  const texteEconomieAvantLicenciement = await page
+    .locator("#current-savings-value")
+    .innerText();
+  const economieAvantLicenciement = await parseInt(
+    texteEconomieAvantLicenciement.replace(/[^\d]/g, ""),
+    10
+  );
+  await console.log("Economie avant licenciement =", economieAvantLicenciement);
+  //Sélection des employés à licencier: Denis Ritchie, Otto Mobile et Mehdi Cament
+  await page.getByTestId("checkbox-1001").check();
+  await page.getByTestId("checkbox-1002").check();
+  await page.getByTestId("checkbox-1003").check();
+  //Cliquer sur l'élément "Virer" de la bande pop-up apparue en bas de la page
+  await page.getByText("Virer", { exact: true }).click();
+  //Cliquer sur le bouton "Continuer" sur la pop-up "Etes-vous sûr ?"
+  await page.getByTestId("fire-step1-confirm").click();
+  //Cliquer sur l'élément "Je n'ai pas de coeur" sur la pop-up "Ils ont des familles !"
+  await page.getByTestId("fire-step2-confirm").press("Tab");
+  //Sélectionner le champ "DELETE"
+  await page.getByTestId("fire-step2-confirm").click();
+  //Saisir "DELETE" dans le champ "DELETE"
+  await page.getByTestId("fire-confirm-input").fill("DELETE");
+  //Cliquer sur le bouton "Valider"
+  await page.getByTestId("fire-step3-confirm").click();
+  //On vérifie que les employés ont bien été licenciés:
+  // 1 - Le tableau des employés ne doit pas contenir le nom des employés Denis Ritchie, Otto Mobile et Mehdi Cament
+  await expect(page.locator("#table-employees")).not.toContainText([
+    "Denis Ritchie",
+    "Otto Mobile",
+    "Mehdi Cament",
+  ]);
+  //On vérifie que les employés ont bien été licenciés:
+  // 2 - L'effectif de l'entreprise doit avoir diminué de 3 après le licenciement
+  const effectifApresLicenciement = parseInt(
+    await page.locator("#stat-total-count").innerText()
+  );
+  await expect(effectifApresLicenciement).toBe(effectifAvantLicenciement - 3);
+  await console.log("Effectif après licenciement =", effectifApresLicenciement);
+  //Récupérer l'économie après le licenciement
+  const texteEconomieApresLicenciement = await page
+    .locator("#current-savings-value")
+    .innerText();
+  const economieApresLicenciement = await parseInt(
+    texteEconomieApresLicenciement.replace(/[^\d]/g, ""),
+    10
+  );
+  await console.log("Economie après licenciement =", economieApresLicenciement);
+  //On vérifie que les employés ont bien été licenciés:
+  // 3 - le licenciement a engendré une économie de 3*45000 euros soit 135000 euros
+  await expect(economieApresLicenciement).toBe(
+    economieAvantLicenciement + 3 * 45000
   );
 });
