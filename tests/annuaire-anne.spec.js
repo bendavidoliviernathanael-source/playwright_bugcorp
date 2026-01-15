@@ -1,5 +1,47 @@
 import { test, expect } from "@playwright/test";
 
+export async function promouvoir(page, id, role) {
+  const btnPrefix = "promote-btn-";
+  const rolePrefix = "#cell-role-";
+  const bugPrefix = "#cell-bugs-";
+
+  const button = btnPrefix + id;
+  const bugCell = bugPrefix + id;
+  const roleCell = rolePrefix + id;
+
+  // Extraire le texte qui donne la valeur des économies réalisées
+  const savingText = await page.locator("#current-savings-value").textContent();
+  // Extraire uniquement les chiffres, en conservant le signe positif ou négatif
+  const savingValue = parseFloat(savingText.replace(/[^\d-]/g, ""));
+  console.log("savingValue:", savingValue);
+
+  // Extraire le texte contenu dans la cellule qui contient le nb de bugs dans le tableau des employés
+  const bugText = await page.locator(bugCell).textContent();
+  // Extraire uniquement les chiffres, en conservant le signe positif ou négatif
+  const bugValue = parseFloat(bugText.replace(/[^\d-]/g, ""));
+
+  // Cliquer sur le bouton promotion sur la ligne de l'employé concerné
+  await page.getByTestId(button).click();
+  //Le nom du rôle situé sous l’identité de l’employé change pour devenir le rôle supérieur
+  await expect(page.locator(roleCell)).toContainText(role);
+
+  // le nombre de bugs diminue de 10
+  const newBugCount = bugValue - 10;
+  // on vérifie que le nombre de bugs affiché a bien pris en compte la nouvelle valeur et on la transforme en string pour coller au typage de la valeur bug que playwright trouve sur le site
+  await expect(page.locator(bugCell)).toHaveText(newBugCount.toString());
+
+  // le  montant inscrit sous objectif d'économie selon le montant prévu est modifié (diminué de 15000€)
+  const newSavingText = await page
+    .locator("#current-savings-value")
+    .textContent();
+  // on transforme la valeur en nombre tout en conservant le signe positif ou négatif
+  const newSavingValue = parseFloat(newSavingText.replace(/[^\d-]/g, ""));
+  // valeur attendue d'économies
+  const expectedSaving = savingValue - 15000;
+  // on vérifie que la valeur que l'on doit obtenir correspond à celle que l'on récupère sur le site
+  expect(newSavingValue).toBe(expectedSaving);
+}
+
 test.describe("Changer le rôle d'un employé: promouvoir", () => {
   // test BDON-30
   test("test BDON-30", async ({ page }) => {
@@ -10,8 +52,6 @@ test.describe("Changer le rôle d'un employé: promouvoir", () => {
     await expect(page.getByTestId("nav-home")).toBeVisible();
     // la page affiche "Bienvenue chez BugCorp"
     await page.getByRole("heading", { name: "Bienvenue chez BugCorp" }).click();
-
-    // Coffee Maker, Prompt Engineer, Scapegoat, Intern, Junior Dev, Senior Dev, Manager, Director, VP, CEO, Galactic Emperor  
 
     // Etape 2
     //Cliquer sur "L’Annuaire" sur le bandeau de gauche.
@@ -24,8 +64,8 @@ test.describe("Changer le rôle d'un employé: promouvoir", () => {
     await expect(
       page.getByRole("heading", { name: "Objectif d'Économies (" })
     ).toBeVisible();
-    //avec en dessous, un montant en euro
-    await expect(page.locator("#target-savings-value")).toContainText("€");
+    //avec en dessous, un objectif d'économies en euro
+    await expect(page.locator("#current-savings-value")).toContainText("€");
 
     // Etape 3
     // Placer la souris au croisement de la ligne correspondant à l’ID de l'employé sélectionné et de la colonne "actions".
@@ -33,156 +73,45 @@ test.describe("Changer le rôle d'un employé: promouvoir", () => {
     // pour atteindre l'employé sur lequel porte le test => taper "Alan" dans la barre de recherche
     await page.getByTestId("search-input").click();
     await page.getByTestId("search-input").fill("Alan");
-    // la liste doit afficher l'employé à tester et son rôle
+    // la liste doit afficher l'employé à tester et son rôle id doit correspondre au role Coffee Maker
     await expect(page.locator("#cell-name-1015")).toContainText("Alan Turing");
     await expect(page.locator("#cell-role-1015")).toContainText("Coffee Maker");
-    // au survol avec la souris, le bouton "promouvoir" doit apparaître
-    await page.getByTestId("promote-btn-1015").hover();
-    await expect(page.getByTestId("promote-btn-1015")).toBeVisible();
-    // BUGS doit être égal à -44
-    await expect(page.getByText("-44")).toBeVisible();
-    // L’encart  objectif d'économie indique: OBJECTIF D’ECONOMIES = 0€ / "objectif d'économie défini"
-    await page.getByText("0 €", { exact: true }).click();
+
+    // roles: Coffee Maker, Prompt Engineer, Scapegoat, Intern, Junior Dev, Senior Dev, Manager, Director, VP, CEO, Galactic Emperor
 
     // Etape 4
-    // Cliquer sur l’icône apparaissant sous la forme d’un bouton contenant une flèche verte en escalier vers le haut.
-    await page.getByTestId("promote-btn-1015").click();
-    //Le nom du rôle situé sous l’identité de l’employé change pour devenir: Prompt Engineer
-    await expect(page.locator("#cell-role-1015")).toContainText(
-      "Prompt Engineer"
-    );
-    // le nombre de bugs a changé
-    await expect(page.locator("#cell-bugs-1015")).not.toHaveText("-44");
-    // le  montant inscrit sous objectif d'économie selon le montant prévu est modifié (diminué de 15000€)
-    await expect(page.locator("#current-savings-value")).toContainText(
-      "-15 000 €"
-    );
-
+    await promouvoir(page, 1015, "Prompt Engineer");
     // Etape 5
-    // Cliquer sur l’icône apparaissant sous la forme d’un bouton contenant une flèche verte en escalier vers le haut.
-    await page.getByTestId("promote-btn-1015").click();
-    // Le nom du rôle situé sous l’identité de l’employé change pour devenir: Scapegoat
-    await expect(page.locator("#cell-role-1015")).toContainText("Scapegoat");
-    // le nombre de bugs a changé
-    await expect(page.locator("#cell-bugs-1015")).not.toHaveText("-54");
-    // le  montant inscrit sous objectif d'économie selon le montant prévu est modifié
-    await expect(page.locator("#current-savings-value")).toContainText(
-      "-30 000 €"
-    );
-
+    await promouvoir(page, 1015, "Scapegoat");
     // Etape 6
-    // Cliquer sur l’icône apparaissant sous la forme d’un bouton contenant une flèche verte en escalier vers le haut.
-    await page.getByTestId("promote-btn-1015").click();
-    // Le nom du rôle situé sous l’identité de l’employé change pour devenir: Intern
-    await expect(page.locator("#cell-role-1015")).toContainText("Intern");
-    // le nombre de bugs a changé
-    await expect(page.locator("#cell-bugs-1015")).not.toHaveText("-64");
-    // le  montant inscrit sous objectif d'économie selon le montant prévu est modifié
-    await expect(page.locator("#current-savings-value")).toContainText(
-      "-45 000 €"
-    );
-
+    await promouvoir(page, 1015, "Intern");
     // Etape 7
-    // Cliquer sur l’icône apparaissant sous la forme d’un bouton contenant une flèche verte en escalier vers le haut.
-    await page.getByTestId("promote-btn-1015").click();
-    // Le nom du rôle situé sous l’identité de l’employé change pour devenir: Junior Dev
-    await expect(page.locator("#cell-role-1015")).toContainText("Junior Dev");
-    // le nombre de bugs a changé
-    await expect(page.locator("#cell-bugs-1015")).not.toHaveText("-74");
-    // le  montant inscrit sous objectif d'économie selon le montant prévu est modifié
-    await expect(page.locator("#current-savings-value")).toContainText(
-      "-60 000 €"
-    );
-
+    await promouvoir(page, 1015, "Junior Dev");
     // Etape 8
+    await promouvoir(page, 1015, "Senior Dev");
+    // Etape 9
+    await promouvoir(page, 1015, "Manager");
+    // Etape 10
+    await promouvoir(page, 1015, "Director");
+    // Etape 11
+    await promouvoir(page, 1015, "VP");
+    // Etape 12
+    await promouvoir(page, 1015, "CEO");
+    // Etape 13
+    await promouvoir(page, 1015, "Galactic Emperor");
+
+    // Etape 14
     // Cliquer sur l’icône apparaissant sous la forme d’un bouton contenant une flèche verte en escalier vers le haut.
     await page.getByTestId("promote-btn-1015").click();
-    // Le nom du rôle situé sous l’identité de l’employé change pour devenir: Senior Dev
-    await expect(page.locator("#cell-role-1015")).toContainText("Senior Dev");
-    // le nombre de bugs a changé
-    await expect(page.locator("#cell-bugs-1015")).not.toHaveText("-84");
-    // le  montant inscrit sous objectif d'économie selon le montant prévu est modifié
-    await expect(page.locator("#current-savings-value")).toContainText(
-      "-75 000 €"
-    );
-
-    // Etape 9
-// Cliquer sur l’icône apparaissant sous la forme d’un bouton contenant une flèche verte en escalier vers le haut.
-    await page.getByTestId("promote-btn-1015").click();
-    // Le nom du rôle situé sous l’identité de l’employé change pour devenir: Manager
-    await expect(page.locator("#cell-role-1015")).toContainText("Manager");
-    // le nombre de bugs a changé
-    await expect(page.locator("#cell-bugs-1015")).not.toHaveText("-94");
-    // le  montant inscrit sous objectif d'économie selon le montant prévu est modifié
-    await expect(page.locator("#current-savings-value")).toContainText(
-      "-90 000 €"
-    );
-
-
-    // Etape 10
-// Cliquer sur l’icône apparaissant sous la forme d’un bouton contenant une flèche verte en escalier vers le haut.
-    await page.getByTestId("promote-btn-1015").click();
-    // Le nom du rôle situé sous l’identité de l’employé change pour devenir: Director
-    await expect(page.locator("#cell-role-1015")).toContainText("Director");
-    // le nombre de bugs a changé
-    await expect(page.locator("#cell-bugs-1015")).not.toHaveText("-104");
-    // le  montant inscrit sous objectif d'économie selon le montant prévu est modifié
-    await expect(page.locator("#current-savings-value")).toContainText(
-      "-105 000 €"
-    );
-
-
-// Etape 11
-// Cliquer sur l’icône apparaissant sous la forme d’un bouton contenant une flèche verte en escalier vers le haut.
-    await page.getByTestId("promote-btn-1015").click();
-    // Le nom du rôle situé sous l’identité de l’employé change pour devenir: VP
-    await expect(page.locator("#cell-role-1015")).toContainText("VP");
-    // le nombre de bugs a changé
-    await expect(page.locator("#cell-bugs-1015")).not.toHaveText("-114");
-    // le  montant inscrit sous objectif d'économie selon le montant prévu est modifié
-    await expect(page.locator("#current-savings-value")).toContainText(
-      "-120 000 €"
-    );
-
-// Etape 12
-// Cliquer sur l’icône apparaissant sous la forme d’un bouton contenant une flèche verte en escalier vers le haut.
-    await page.getByTestId("promote-btn-1015").click();
-    // Le nom du rôle situé sous l’identité de l’employé change pour devenir: CEO
-    await expect(page.locator("#cell-role-1015")).toContainText("CEO");
-    // le nombre de bugs a changé
-    await expect(page.locator("#cell-bugs-1015")).not.toHaveText("-124");
-    // le  montant inscrit sous objectif d'économie selon le montant prévu est modifié
-    await expect(page.locator("#current-savings-value")).toContainText(
-      "-135 000 €"
-    );
-
-
-// Etape 13
-// Cliquer sur l’icône apparaissant sous la forme d’un bouton contenant une flèche verte en escalier vers le haut.
-    await page.getByTestId("promote-btn-1015").click();
     // Le nom du rôle situé sous l’identité de l’employé change pour devenir: Galactic Emperor
-    await expect(page.locator("#cell-role-1015")).toContainText("Galactic Emperor");
-    // le nombre de bugs a changé
-    await expect(page.locator("#cell-bugs-1015")).not.toHaveText("-134");
-    // le  montant inscrit sous objectif d'économie selon le montant prévu est modifié
-    await expect(page.locator("#current-savings-value")).toContainText(
-      "-150 000 €"
+    await expect(page.locator("#cell-role-1015")).toContainText(
+      "Galactic Emperor"
     );
-
-
-
-// Etape 14
-// Cliquer sur l’icône apparaissant sous la forme d’un bouton contenant une flèche verte en escalier vers le haut.
-    await page.getByTestId("promote-btn-1015").click();
-    // Le nom du rôle situé sous l’identité de l’employé change pour devenir: Galactic Emperor
-    await expect(page.locator("#cell-role-1015")).toContainText("Galactic Emperor");
     // le nombre de bugs a changé
     await expect(page.locator("#cell-bugs-1015")).toHaveText("-144");
     // le  montant inscrit sous objectif d'économie selon le montant prévu est modifié
     await expect(page.locator("#current-savings-value")).toContainText(
       "-150 000 €"
     );
-
-
   });
 });
