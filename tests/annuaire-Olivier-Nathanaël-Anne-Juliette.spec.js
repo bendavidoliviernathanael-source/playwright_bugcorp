@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Tests de la page annuaire", () => {
-  //test BDON-39
+  //Test BDON-39 Attendre l'économie optimale en virant le nombre minimum d'employés.
+  //Afficher un message stipulant que l'objectif d'économies est atteint.
   test("test BDON-39", async ({ page }) => {
     //Visiter le site https://bugcorp.vercel.app/
     await page.goto("https://bugcorp.vercel.app/");
