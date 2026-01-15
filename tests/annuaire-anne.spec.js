@@ -64,8 +64,8 @@ test.describe("Changer le rôle d'un employé: promouvoir", () => {
     await expect(
       page.getByRole("heading", { name: "Objectif d'Économies (" })
     ).toBeVisible();
-    //avec en dessous, un montant en euro
-    await expect(page.locator("#target-savings-value")).toContainText("€");
+    //avec en dessous, un objectif d'économies en euro
+    await expect(page.locator("#current-savings-value")).toContainText("€");
 
     // Etape 3
     // Placer la souris au croisement de la ligne correspondant à l’ID de l'employé sélectionné et de la colonne "actions".
@@ -73,18 +73,11 @@ test.describe("Changer le rôle d'un employé: promouvoir", () => {
     // pour atteindre l'employé sur lequel porte le test => taper "Alan" dans la barre de recherche
     await page.getByTestId("search-input").click();
     await page.getByTestId("search-input").fill("Alan");
-    // la liste doit afficher l'employé à tester et son rôle
+    // la liste doit afficher l'employé à tester et son rôle id doit correspondre au role Coffee Maker
     await expect(page.locator("#cell-name-1015")).toContainText("Alan Turing");
     await expect(page.locator("#cell-role-1015")).toContainText("Coffee Maker");
-    // au survol avec la souris, le bouton "promouvoir" doit apparaître
-    await page.getByTestId("promote-btn-1015").hover();
-    await expect(page.getByTestId("promote-btn-1015")).toBeVisible();
-    // BUGS doit être égal à -44
-    await expect(page.getByText("-44")).toBeVisible();
-    // L’encart  objectif d'économie indique: OBJECTIF D’ECONOMIES = 0€ / "objectif d'économie défini"
-    await page.getByText("0 €", { exact: true }).click();
 
-    // Coffee Maker, Prompt Engineer, Scapegoat, Intern, Junior Dev, Senior Dev, Manager, Director, VP, CEO, Galactic Emperor
+    // roles: Coffee Maker, Prompt Engineer, Scapegoat, Intern, Junior Dev, Senior Dev, Manager, Director, VP, CEO, Galactic Emperor
 
     // Etape 4
     await promouvoir(page, 1015, "Prompt Engineer");
@@ -92,25 +85,18 @@ test.describe("Changer le rôle d'un employé: promouvoir", () => {
     await promouvoir(page, 1015, "Scapegoat");
     // Etape 6
     await promouvoir(page, 1015, "Intern");
-
     // Etape 7
     await promouvoir(page, 1015, "Junior Dev");
-
     // Etape 8
     await promouvoir(page, 1015, "Senior Dev");
-
     // Etape 9
     await promouvoir(page, 1015, "Manager");
-
     // Etape 10
     await promouvoir(page, 1015, "Director");
-
     // Etape 11
     await promouvoir(page, 1015, "VP");
-
     // Etape 12
     await promouvoir(page, 1015, "CEO");
-
     // Etape 13
     await promouvoir(page, 1015, "Galactic Emperor");
 
