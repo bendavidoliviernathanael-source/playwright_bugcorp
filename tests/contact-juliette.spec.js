@@ -55,7 +55,7 @@ test.describe("Tests de la page contact - contact par mail", () => {
     await page
       .getByRole("button", { name: "Initialiser la Transmission" })
       .click();
-    //On s'attend à ne pas avoir ce message "Message envoyé avec succès"
+    //Le message "Message envoyé avec succès" ne doit pas apparaître
     await expect(
       page.getByText("Message envoyé avec succès")
     ).not.toBeVisible();
