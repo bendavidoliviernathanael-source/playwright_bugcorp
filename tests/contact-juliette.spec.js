@@ -55,7 +55,9 @@ test.describe("Tests de la page contact - contact par mail", () => {
     await page
       .getByRole("button", { name: "Initialiser la Transmission" })
       .click();
-    //Assertion volontairement fausse (le message NE doit PAS être accepté)
-    await expect(page.getByText("Message envoyé avec succès")).toBeVisible();
+    //On s'attend à ne pas avoir ce message "Message envoyé avec succès"
+    await expect(
+      page.getByText("Message envoyé avec succès")
+    ).not.toBeVisible();
   });
 });
