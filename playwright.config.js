@@ -27,7 +27,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     browserName: "webkit",
-    headless: false,
+    headless: true,
     launchOptions: {
       slowMo: 500, // 1 seconde de délai entre chaque action
     },
