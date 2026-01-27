@@ -10,4 +10,7 @@ jobs:
      env:
       DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
      run: |
-       curl -H "Content-Type: application/json" \ -d "{\"content\":\"✅ Nouveau push sur **${GITHUB_REPOSITORY}** (branch: **${GITHUB_REF_NAME}**) —commit: ${GITHUB_SHA}\"}" \ "$DISCORD_WEBHOOK_URL"
+      curl -H "Content-Type: application/json" \
+      -d "{\"content\":\"✅ Nouveau push sur **${GITHUB_REPOSITORY}** (branch: **${GITHUB_REF_NAME}**) — commit: ${GITHUB_SHA}\"}" \
+      "$DISCORD_WEBHOOK_URL"
+
