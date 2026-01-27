@@ -41,7 +41,7 @@ export default defineConfig({
         ["html", { open: "on-failure", outputFolder: "playwright-report" }],
     ],
       
-    /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */,
+    /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     // ✅ URL cible (injectée depuis le workflow), fallback vers prod
     baseURL: process.env.BASE_URL || "https://bugcorp.vercel.app",
