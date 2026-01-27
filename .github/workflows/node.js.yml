@@ -85,4 +85,20 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          curl -H "Content-Type: application/json" \ -d "{\"content\":\"✅ Nouveau push sur **${GITHUB_REPOSITORY}** (branch: **${GITHUB_REF_NAME}**) —commit: ${GITHUB_SHA}\"}" \ "$DISCORD_WEBHOOK_URL"
+          curl -F "file=@fichier.zip" \ -d "{\"content\":\"✅ Nouveau push sur **${GITHUB_REPOSITORY}** (branch: **${GITHUB_REF_NAME}**) —commit: ${GITHUB_SHA}\"}" \ "$DISCORD_WEBHOOK_URL"
+
+      - name: Download Playwright report artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report.zip
+          path: .
+
+      - name: Send Playwright report to Discord
+        if: always() # Envoie même si les tests ont échoué
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -X POST \
+           -F "payload_json={\"content\":\"📊 Rapport Playwright pour **${GITHUB_REPOSITORY}** (branch: **${GITHUB_REF_NAME}**) — commit: ${GITHUB_SHA}\"}" \
+           -F "file=@playwright-report.zip" \
+           "$DISCORD_WEBHOOK_URL"
