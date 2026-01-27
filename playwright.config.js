@@ -1,6 +1,8 @@
 // @ts-check
 import { defineConfig, devices } from "@playwright/test";
 
+const isCI = !!process.env.CI;
+
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -17,26 +19,44 @@ export default defineConfig({
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
-  forbidOnly: !!process.env.CI,
+  forbidOnly: !!isCI,
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  retries: isCI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  workers: isCI ? 6 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: "html",
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
-  use: {
-    browserName: "webkit",
-    headless: true,
-    launchOptions: {
-      slowMo: 500, // 1 seconde de délai entre chaque action
-    },
-    /* Base URL to use in actions like `await page.goto('')`. */
-    // baseURL: 'http://localhost:3000',
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+  // Timeouts globaux
+  timeout: isCI ? 120_000 : 30_000,
+  expect: { timeout: 10_000 },
+
+  // Rapport détaillé
+  reporter: isCI
+    ? [
+        ["github"],
+        ["html", { open: "never", outputFolder: "playwright-report" }],
+        ["junit", { outputFile: "test-results/junit.xml" }],
+      ]
+    : [
+        ["html", { open: "on-failure", outputFolder: "playwright-report" }],
+    ],
+      
+    /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */,
+  use: {
+    // ✅ URL cible (injectée depuis le workflow), fallback vers prod
+    baseURL: process.env.BASE_URL || "https://bugcorp.vercel.app",
+
+    // CI = headless
+    headless: true,
+
+    // Pour réduire les faux rouges réseau/chargements
+    navigationTimeout: 30_000,
+    actionTimeout: 10_000,
+
+    // Artifacts de debug
     trace: "on-first-retry",
-  },
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",  },
 
   /* Configure projects for major browsers */
   projects: [
@@ -55,25 +75,6 @@ export default defineConfig({
       use: { ...devices["Desktop Safari"] },
     },
 
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
   ],
 
   /* Run your local dev server before starting the tests */
