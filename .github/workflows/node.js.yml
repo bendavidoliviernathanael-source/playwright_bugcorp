@@ -78,11 +78,11 @@ jobs:
           path: test-results
           retention-days: 14
 
-discord:
-  runs-on: ubuntu-latest
-  steps:
-    - name: Send message to Discord webhook
-      env:
-        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-      run: |
-        curl -H "Content-Type: application/json" \ -d "{\"content\":\path: playwright-report"✅ Nouveau push sur **${GITHUB_REPOSITORY}** (branch: **${GITHUB_REF_NAME}**) —commit: ${GITHUB_SHA}\"}" \ "$DISCORD_WEBHOOK_URL"
+  discord:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send message to Discord webhook
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -H "Content-Type: application/json" \ -d "{\"content\":\"✅ Nouveau push sur **${GITHUB_REPOSITORY}** (branch: **${GITHUB_REF_NAME}**) —commit: ${GITHUB_SHA}\"}" \ "$DISCORD_WEBHOOK_URL"
