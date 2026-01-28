@@ -6,9 +6,9 @@ name: Initiation à la l'intégration continue CI (playwright)
 # détermine quand le script est déclenché
 on:
   push:
-    branches: ["test-CI"]
+    branches: ["test-CI2"]
   pull_request:
-    branches: ["test-CI"]
+    branches: ["test-CI2"]
 
 # les tâches à exécuter
 jobs:
