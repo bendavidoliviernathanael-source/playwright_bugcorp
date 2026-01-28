@@ -78,15 +78,10 @@ jobs:
           path: test-results
           retention-days: 14
 
-      - name: Send default message
-        uses: bendavidoliviernathanael-source/discord-action@v1.2.0
-        with:
-          webhook_url: ${{ secrets.WEBHOOK_URL }}
-
   discord:
     runs-on: ubuntu-latest
     steps:
       - name: Send default message
-        uses: bendavidoliviernathanael-source/discord-action@v1.2.0
+        uses: bendavidoliviernathanael-source/playwright_bugcorp
         with:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
