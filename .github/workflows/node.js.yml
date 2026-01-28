@@ -81,12 +81,6 @@ jobs:
   discord:
     runs-on: ubuntu-latest
     steps:
-      - name: Send message to Discord webhook
-        env:
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        run: |
-          curl -F "file=@fichier.zip" \ -d "{\"content\":\"✅ Nouveau push sur **${GITHUB_REPOSITORY}** (branch: **${GITHUB_REF_NAME}**) —commit: ${GITHUB_SHA}\"}" \ "$DISCORD_WEBHOOK_URL"
-
       - name: Download Playwright report artifact
         uses: actions/download-artifact@v4
         with:
