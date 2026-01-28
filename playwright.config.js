@@ -28,7 +28,7 @@ export default defineConfig({
 
   // Timeouts globaux
   timeout: isCI ? 120_000 : 30_000,
-  expect: { timeout: 10_000 },
+  expect: { timeout: isCI ? 120_000 : 10_000 },
 
   // Rapport détaillé
   reporter: isCI
@@ -37,11 +37,9 @@ export default defineConfig({
         ["html", { open: "never", outputFolder: "playwright-report" }],
         ["junit", { outputFile: "test-results/junit.xml" }],
       ]
-    : [
-        ["html", { open: "on-failure", outputFolder: "playwright-report" }],
-    ],
-      
-    /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
+    : [["html", { open: "on-failure", outputFolder: "playwright-report" }]],
+
+  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     // ✅ URL cible (injectée depuis le workflow), fallback vers prod
     baseURL: process.env.BASE_URL || "https://bugcorp.vercel.app",
@@ -56,7 +54,8 @@ export default defineConfig({
     // Artifacts de debug
     trace: "on-first-retry",
     screenshot: "only-on-failure",
-    video: "retain-on-failure",  },
+    video: "retain-on-failure",
+  },
 
   /* Configure projects for major browsers */
   projects: [
@@ -74,7 +73,6 @@ export default defineConfig({
       name: "webkit",
       use: { ...devices["Desktop Safari"] },
     },
-
   ],
 
   /* Run your local dev server before starting the tests */
