@@ -7,3 +7,9 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 .DS_Store
+lighthouse-reports/annuaire.html
+lighthouse-reports/annuaire.json
+lighthouse-reports/contact.html
+lighthouse-reports/contact.json
+lighthouse-reports/elements-instables.html
+lighthouse-reports/elements-instables.json
